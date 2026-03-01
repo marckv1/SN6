@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Login - Nube Verde Monitor de Consumo Energético">
+    <meta name="author" content="UEES">
+
+    <title>Nube Verde - Iniciar Sesión</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="css/sb-admin-2.min.css" rel="stylesheet">
+
+    <style>
+        .bg-gradient-green {
+            background: linear-gradient(180deg, #1cc88a 10%, #13855c 100%);
+        }
+        .btn-green {
+            background-color: #1cc88a;
+            border-color: #1cc88a;
+            color: white;
+        }
+        .btn-green:hover {
+            background-color: #13855c;
+            border-color: #13855c;
+            color: white;
+        }
+        .brand-icon {
+            font-size: 4rem;
+            color: #1cc88a;
+        }
+        .error-message {
+            display: none;
+            color: #e74a3b;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+        .loading-spinner {
+            display: none;
+        }
+        .bg-login-image {
+            background: url('img/nube-verde-bg.jpg') center center / cover no-repeat;
+            background-color: #1cc88a;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-green">
+
+    <div class="container">
+        <!-- Outer Row -->
+        <div class="row justify-content-center">
+            <div class="col-xl-10 col-lg-12 col-md-9">
+                <div class="card o-hidden border-0 shadow-lg my-5">
+                    <div class="card-body p-0">
+                        <!-- Nested Row within Card Body -->
+                        <div class="row">
+                            <div class="col-lg-6 d-none d-lg-block bg-login-image">
+                                <div class="d-flex flex-column justify-content-center align-items-center h-100 text-white p-5">
+                                    <i class="fas fa-leaf fa-5x mb-4"></i>
+                                    <h2 class="font-weight-bold">Nube Verde</h2>
+                                    <p class="text-center">Monitor de Consumo Energético en la Nube</p>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="p-5">
+                                    <div class="text-center">
+                                        <i class="fas fa-leaf brand-icon mb-3"></i>
+                                        <h1 class="h4 text-gray-900 mb-2">¡Bienvenido a Nube Verde!</h1>
+                                        <p class="text-muted mb-4">Ingresa tus credenciales para acceder al panel de monitoreo energético</p>
+                                    </div>
+                                    
+                                    <form class="user" id="loginForm">
+                                        <div class="form-group">
+                                            <input type="email" 
+                                                   class="form-control form-control-user"
+                                                   id="inputEmail" 
+                                                   aria-describedby="emailHelp"
+                                                   placeholder="Correo electrónico..."
+                                                   required>
+                                        </div>
+                                        <div class="form-group">
+                                            <input type="password" 
+                                                   class="form-control form-control-user"
+                                                   id="inputPassword" 
+                                                   placeholder="Contraseña..."
+                                                   required>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="custom-control custom-checkbox small">
+                                                <input type="checkbox" class="custom-control-input" id="customCheck">
+                                                <label class="custom-control-label" for="customCheck">Recordarme</label>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Mensaje de error -->
+                                        <div id="errorMessage" class="error-message text-center mb-3">
+                                            <i class="fas fa-exclamation-circle"></i>
+                                            <span id="errorText">Error de autenticación</span>
+                                        </div>
+                                        
+                                        <button type="submit" class="btn btn-green btn-user btn-block" id="btnLogin">
+                                            <span id="btnText">Iniciar Sesión</span>
+                                            <span id="btnSpinner" class="loading-spinner">
+                                                <i class="fas fa-spinner fa-spin"></i> Verificando...
+                                            </span>
+                                        </button>
+                                    </form>
+                                    
+                                    <hr>
+                                    
+                                    <div class="text-center">
+                                        <a class="small" href="#" onclick="mostrarRecuperarPassword()">¿Olvidaste tu contraseña?</a>
+                                    </div>
+                                    
+                                    <hr>
+                                    
+                                    <div class="text-center small text-muted">
+                                        <p class="mb-1"><i class="fas fa-shield-alt"></i> Acceso restringido a personal autorizado</p>
+                                        <p class="mb-0">UEES - Universidad Nova Digital</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Recuperar Contraseña -->
+    <div class="modal fade" id="modalRecuperarPassword" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Recuperar Contraseña</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.</p>
+                    <div class="form-group">
+                        <input type="email" class="form-control" id="emailRecuperacion" placeholder="Correo electrónico...">
+                    </div>
+                    <div id="recuperacionMensaje"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-green" onclick="enviarRecuperacion()">Enviar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+    <script>
+        // ============================================
+        // CONFIGURACIÓN DE FIREBASE
+        // ============================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyAE_pViacv5LR9DpalknyS5nuu-TJcTsxw",
+            authDomain: "nube-verde-monitor.firebaseapp.com",
+            projectId: "nube-verde-monitor",
+            storageBucket: "nube-verde-monitor.firebasestorage.app",
+            messagingSenderId: "694437356246",
+            appId: "1:694437356246:web:0b6792fd2a913727739f77"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // ============================================
+        // VERIFICAR SI YA ESTÁ AUTENTICADO
+        // ============================================
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // Usuario ya autenticado, redirigir al dashboard
+                console.log("✅ Usuario autenticado:", user.email);
+                window.location.href = 'index.html';
+            }
+        });
+
+        // ============================================
+        // MANEJO DEL FORMULARIO DE LOGIN
+        // ============================================
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('inputEmail').value.trim();
+            const password = document.getElementById('inputPassword').value;
+            const rememberMe = document.getElementById('customCheck').checked;
+            
+            // Ocultar mensaje de error previo
+            document.getElementById('errorMessage').style.display = 'none';
+            
+            // Mostrar spinner
+            document.getElementById('btnText').style.display = 'none';
+            document.getElementById('btnSpinner').style.display = 'inline';
+            document.getElementById('btnLogin').disabled = true;
+            
+            try {
+                // Configurar persistencia según "Recordarme"
+                const persistence = rememberMe 
+                    ? firebase.auth.Auth.Persistence.LOCAL 
+                    : firebase.auth.Auth.Persistence.SESSION;
+                
+                await auth.setPersistence(persistence);
+                
+                // Intentar login
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                
+                console.log("✅ Login exitoso:", userCredential.user.email);
+                
+                // Redirigir al dashboard
+                window.location.href = 'index.html';
+                
+            } catch (error) {
+                console.error("❌ Error de login:", error);
+                
+                // Mostrar mensaje de error
+                let mensajeError = 'Error de autenticación';
+                
+                switch (error.code) {
+                    case 'auth/invalid-email':
+                        mensajeError = 'El correo electrónico no es válido';
+                        break;
+                    case 'auth/user-disabled':
+                        mensajeError = 'Esta cuenta ha sido deshabilitada';
+                        break;
+                    case 'auth/user-not-found':
+                        mensajeError = 'No existe una cuenta con este correo';
+                        break;
+                    case 'auth/wrong-password':
+                        mensajeError = 'Contraseña incorrecta';
+                        break;
+                    case 'auth/too-many-requests':
+                        mensajeError = 'Demasiados intentos fallidos. Intenta más tarde';
+                        break;
+                    case 'auth/invalid-credential':
+                        mensajeError = 'Credenciales inválidas. Verifica tu correo y contraseña';
+                        break;
+                    default:
+                        mensajeError = 'Error: ' + error.message;
+                }
+                
+                document.getElementById('errorText').textContent = mensajeError;
+                document.getElementById('errorMessage').style.display = 'block';
+                
+            } finally {
+                // Restaurar botón
+                document.getElementById('btnText').style.display = 'inline';
+                document.getElementById('btnSpinner').style.display = 'none';
+                document.getElementById('btnLogin').disabled = false;
+            }
+        });
+
+        // ============================================
+        // RECUPERACIÓN DE CONTRASEÑA
+        // ============================================
+        function mostrarRecuperarPassword() {
+            $('#modalRecuperarPassword').modal('show');
+        }
+
+        async function enviarRecuperacion() {
+            const email = document.getElementById('emailRecuperacion').value.trim();
+            const mensajeDiv = document.getElementById('recuperacionMensaje');
+            
+            if (!email) {
+                mensajeDiv.innerHTML = '<div class="alert alert-warning">Ingresa tu correo electrónico</div>';
+                return;
+            }
+            
+            try {
+                await auth.sendPasswordResetEmail(email);
+                mensajeDiv.innerHTML = '<div class="alert alert-success"><i class="fas fa-check"></i> Se ha enviado un enlace de recuperación a tu correo</div>';
+                
+                setTimeout(() => {
+                    $('#modalRecuperarPassword').modal('hide');
+                    mensajeDiv.innerHTML = '';
+                }, 3000);
+                
+            } catch (error) {
+                console.error("Error al enviar recuperación:", error);
+                
+                let mensaje = 'Error al enviar el correo';
+                if (error.code === 'auth/user-not-found') {
+                    mensaje = 'No existe una cuenta con este correo';
+                }
+                
+                mensajeDiv.innerHTML = `<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> ${mensaje}</div>`;
+            }
+        }
+
+        // ============================================
+        // PERMITIR ENTER PARA ENVIAR
+        // ============================================
+        document.getElementById('inputPassword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+            }
+        });
+    </script>
+</body>
+</html>

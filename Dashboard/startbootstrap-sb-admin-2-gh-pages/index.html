@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Monitor de Consumo Energético Cloud - Nube Verde">
+    <meta name="author" content="UEES">
+    <title>Nube Verde - Monitor de Consumo Energético</title>
+    
+    <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet">
+    <link href="css/sb-admin-2.min.css" rel="stylesheet">
+    
+    <style>
+        .bg-gradient-green { background: linear-gradient(180deg, #1cc88a 10%, #13855c 100%); }
+        .sidebar-dark .sidebar-brand { background-color: #13855c !important; }
+        .page-section { display: none; }
+        .page-section.active { display: block; }
+        .punto-card { cursor: pointer; transition: transform 0.2s; }
+        .punto-card:hover { transform: translateY(-5px); }
+        .alerta-card { border-left: 4px solid; margin-bottom: 15px; }
+        .alerta-critica { border-left-color: #e74a3b; background-color: #fdecea; }
+        .alerta-alta { border-left-color: #f6c23e; background-color: #fef9e7; }
+        .alerta-media { border-left-color: #36b9cc; background-color: #e8f8fa; }
+        .chart-container { position: relative; height: 300px; }
+    </style>
+</head>
+<body id="page-top">
+    <div id="wrapper">
+        <ul class="navbar-nav bg-gradient-green sidebar sidebar-dark accordion" id="accordionSidebar">
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="#" onclick="mostrarSeccion('dashboard')">
+                <div class="sidebar-brand-icon"><i class="fas fa-leaf"></i></div>
+                <div class="sidebar-brand-text mx-3">Nube Verde</div>
+            </a>
+            <hr class="sidebar-divider my-0">
+            <li class="nav-item active" id="nav-dashboard">
+                <a class="nav-link" href="#" onclick="mostrarSeccion('dashboard')">
+                    <i class="fas fa-fw fa-tachometer-alt"></i><span>Dashboard</span>
+                </a>
+            </li>
+            <hr class="sidebar-divider">
+            <div class="sidebar-heading">Monitoreo</div>
+            <li class="nav-item" id="nav-puntos">
+                <a class="nav-link" href="#" onclick="mostrarSeccion('puntos')">
+                    <i class="fas fa-fw fa-map-marker-alt"></i><span>Puntos de Medición</span>
+                </a>
+            </li>
+            <li class="nav-item" id="nav-historico">
+                <a class="nav-link" href="#" onclick="mostrarSeccion('historico')">
+                    <i class="fas fa-fw fa-chart-line"></i><span>Histórico</span>
+                </a>
+            </li>
+            <li class="nav-item" id="nav-alertas">
+                <a class="nav-link" href="#" onclick="mostrarSeccion('alertas')">
+                    <i class="fas fa-fw fa-exclamation-triangle"></i><span>Alertas</span>
+                    <span class="badge badge-danger badge-counter ml-2" id="alertas-counter">0</span>
+                </a>
+            </li>
+            <hr class="sidebar-divider d-none d-md-block">
+            <div class="text-center d-none d-md-inline">
+                <button class="rounded-circle border-0" id="sidebarToggle"></button>
+            </div>
+        </ul>
+
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                        <i class="fa fa-bars"></i>
+                    </button>
+                    <h5 class="mb-0 text-gray-800 d-none d-md-block">
+                        <i class="fas fa-leaf text-success mr-2"></i>Monitor de Consumo Energético - UEES
+                    </h5>
+                    <ul class="navbar-nav ml-auto">
+                        <li class="nav-item"><span class="nav-link"><span id="conexion-status" class="badge badge-success"><i class="fas fa-circle"></i> Conectado</span></span></li>
+                        <li class="nav-item"><span class="nav-link" id="pico-indicator"></span></li>
+                        <div class="topbar-divider d-none d-sm-block"></div>
+                        <li class="nav-item dropdown no-arrow">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown">
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small" id="nombreUsuario">Usuario</span>
+                                <i class="fas fa-user-circle fa-2x text-gray-400"></i>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right shadow">
+                                <a class="dropdown-item" href="#" onclick="cerrarSesion()">
+                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>Cerrar Sesión
+                                </a>
+                            </div>
+                        </li>
+                    </ul>
+                </nav>
+
+                <div class="container-fluid">
+                    <!-- DASHBOARD -->
+                    <div id="dashboard-section" class="page-section active">
+                        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                            <h1 class="h3 mb-0 text-gray-800">Dashboard de Consumo Energético</h1>
+                            <button class="btn btn-sm btn-success shadow-sm" onclick="actualizarDatos()">
+                                <i class="fas fa-sync fa-sm"></i> Actualizar
+                            </button>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-primary shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Consumo Total (kWh)</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="consumo-total">0.00</div>
+                                            </div>
+                                            <div class="col-auto"><i class="fas fa-bolt fa-2x text-gray-300"></i></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-success shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Consumo Promedio (kWh)</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="consumo-promedio">0.00</div>
+                                            </div>
+                                            <div class="col-auto"><i class="fas fa-chart-bar fa-2x text-gray-300"></i></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-info shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Puntos Activos</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="puntos-activos">0</div>
+                                            </div>
+                                            <div class="col-auto"><i class="fas fa-map-marker-alt fa-2x text-gray-300"></i></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-warning shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Lecturas Hoy</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="lecturas-hoy">0</div>
+                                                <small class="text-muted">Tendencia: <span id="tendencia" class="text-success">0%</span></small>
+                                            </div>
+                                            <div class="col-auto"><i class="fas fa-database fa-2x text-gray-300"></i></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- NUEVOS KPIS AVANZADOS -->
+                        <div class="row">
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-success shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div id="eficiencia-global">
+                                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Eficiencia Energética</div>
+                                                    <div class="h5 mb-0 font-weight-bold text-gray-800">0%</div>
+                                                    <small class="text-muted">Clasificación: <span class="text-success">--</span></small>
+                                                </div>
+                                            </div>
+                                            <div class="col-auto"><i class="fas fa-leaf fa-2x text-gray-300"></i></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-info shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div id="huella-carbono">
+                                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Huella de Carbono</div>
+                                                    <div class="h5 mb-0 font-weight-bold text-gray-800">0 kg</div>
+                                                    <small class="text-muted">CO₂ emitido</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-auto"><i class="fas fa-cloud fa-2x text-gray-300"></i></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-warning shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div id="costo-estimado">
+                                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Costo Estimado</div>
+                                                    <div class="h5 mb-0 font-weight-bold text-gray-800">$0</div>
+                                                    <small class="text-muted">USD totales</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-auto"><i class="fas fa-dollar-sign fa-2x text-gray-300"></i></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card border-left-success shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div id="potencial-ahorro">
+                                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Potencial de Ahorro</div>
+                                                    <div class="h5 mb-0 font-weight-bold text-gray-800">0 kWh</div>
+                                                    <small class="text-success">0% sobre consumo</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-auto"><i class="fas fa-piggy-bank fa-2x text-gray-300"></i></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PANEL DE PROYECCIONES -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="card shadow mb-4">
+                                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-line mr-2"></i>Proyecciones y Tendencias</h6>
+                                        <button class="btn btn-sm btn-success" onclick="generarReporteEficiencia()">
+                                            <i class="fas fa-file-alt mr-1"></i>Generar Reporte
+                                        </button>
+                                    </div>
+                                    <div class="card-body" id="panel-proyecciones">
+                                        <div class="text-center text-muted py-3">
+                                            <i class="fas fa-spinner fa-spin"></i> Calculando proyecciones...
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div id="mensaje-verde" class="alert alert-success">
+                                    <i class="fas fa-leaf mr-2"></i><strong>Cargando...</strong> Obteniendo datos.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- GRÁFICAS (MOVIDAS ANTES DE PROYECCIONES) -->
+                        <div class="row mb-4">
+                            <div class="col-xl-6 col-lg-6 mb-4">
+                                <div class="card shadow h-100">
+                                    <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-bar mr-2"></i>Consumo por Punto</h6></div>
+                                    <div class="card-body"><div class="chart-container"><canvas id="grafica-consumo"></canvas></div></div>
+                                </div>
+                            </div>
+                            <div class="col-xl-6 col-lg-6 mb-4">
+                                <div class="card shadow h-100">
+                                    <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-clock mr-2"></i>Patrón por Hora</h6></div>
+                                    <div class="card-body"><div class="chart-container"><canvas id="grafica-tendencia"></canvas></div></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- GRÁFICA CIRCULAR DE DISTRIBUCIÓN (NUEVA) -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="card shadow">
+                                    <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-pie mr-2"></i>Distribución de Consumo por Punto (%)</h6></div>
+                                    <div class="card-body">
+                                        <div style="height: 350px; position: relative;">
+                                            <canvas id="grafica-distribucion"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SECCIÓN DE RANKINGS Y ANOMALÍAS -->
+                        <div class="row mb-4">
+                            <div class="col-xl-4 col-md-6 mb-4">
+                                <div class="card shadow h-100">
+                                    <div class="card-header py-3 bg-warning">
+                                        <h6 class="m-0 font-weight-bold text-white"><i class="fas fa-trophy mr-2"></i>Top 5 Consumidores</h6>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-hover mb-0">
+                                                <thead class="thead-light">
+                                                    <tr><th>#</th><th>Punto</th><th>Consumo</th><th>Eficiencia</th></tr>
+                                                </thead>
+                                                <tbody id="tabla-top-consumidores">
+                                                    <tr><td colspan="4" class="text-center">Cargando...</td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-4 col-md-6 mb-4">
+                                <div class="card shadow h-100">
+                                    <div class="card-header py-3 bg-danger">
+                                        <h6 class="m-0 font-weight-bold text-white"><i class="fas fa-exclamation-triangle mr-2"></i>Top 5 Menos Eficientes</h6>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-hover mb-0">
+                                                <thead class="thead-light">
+                                                    <tr><th>#</th><th>Punto</th><th>Eficiencia</th><th>Excedente</th></tr>
+                                                </thead>
+                                                <tbody id="tabla-top-ineficientes">
+                                                    <tr><td colspan="4" class="text-center">Cargando...</td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-4 col-md-12 mb-4">
+                                <div class="card shadow h-100">
+                                    <div class="card-header py-3 bg-info">
+                                        <h6 class="m-0 font-weight-bold text-white"><i class="fas fa-search mr-2"></i>Anomalías Detectadas</h6>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                                            <table class="table table-sm table-hover mb-0">
+                                                <thead class="thead-light">
+                                                    <tr><th>Punto</th><th>Consumo</th><th>Promedio</th><th>Z-Score</th><th>Fecha</th></tr>
+                                                </thead>
+                                                <tbody id="tabla-anomalias">
+                                                    <tr><td colspan="5" class="text-center">Analizando...</td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-list mr-2"></i>Últimas Lecturas</h6></div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover">
+                                        <thead class="thead-light">
+                                            <tr><th>Punto</th><th>Consumo</th><th>% Base</th><th>Estado</th><th>Fecha</th></tr>
+                                        </thead>
+                                        <tbody id="tabla-lecturas">
+                                            <tr><td colspan="5" class="text-center"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PUNTOS -->
+                    <div id="puntos-section" class="page-section">
+                        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                            <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-map-marker-alt mr-2"></i>Puntos de Medición</h1>
+                        </div>
+                        <div class="row" id="puntos-container">
+                            <div class="col-12 text-center py-5"><i class="fas fa-spinner fa-spin fa-2x"></i><p class="text-muted mt-2">Cargando...</p></div>
+                        </div>
+                    </div>
+
+                    <!-- HISTÓRICO -->
+                    <div id="historico-section" class="page-section">
+                        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                            <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-chart-line mr-2"></i>Histórico</h1>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-success" onclick="exportarCSV('lecturas')"><i class="fas fa-file-csv mr-1"></i>Exportar Lecturas</button>
+                                <button class="btn btn-sm btn-info" onclick="exportarCSV('kpis')"><i class="fas fa-file-csv mr-1"></i>Exportar KPIs</button>
+                                <button class="btn btn-sm btn-primary" onclick="exportarCSV('eficiencia')"><i class="fas fa-file-csv mr-1"></i>Exportar Eficiencia</button>
+                                <button class="btn btn-sm btn-warning" onclick="exportarCSV('rankings')"><i class="fas fa-file-csv mr-1"></i>Exportar Rankings</button>
+                            </div>
+                        </div>
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">Filtros</h6></div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3"><label>Fecha Inicio</label><input type="date" class="form-control" id="fecha-inicio"></div>
+                                    <div class="col-md-3"><label>Fecha Fin</label><input type="date" class="form-control" id="fecha-fin"></div>
+                                    <div class="col-md-4"><label>Punto</label><select class="form-control" id="filtro-punto"><option value="todos">Todos</option></select></div>
+                                    <div class="col-md-2 d-flex align-items-end"><button class="btn btn-primary btn-block" onclick="cargarHistorico()"><i class="fas fa-search"></i> Filtrar</button></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">Evolución</h6></div>
+                            <div class="card-body"><div class="chart-container"><canvas id="grafica-historico"></canvas></div></div>
+                        </div>
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">Resumen</h6></div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead class="thead-light"><tr><th>Fecha</th><th>Punto</th><th>Consumo Total</th><th>Promedio</th><th>% Base</th></tr></thead>
+                                        <tbody id="tabla-historico"><tr><td colspan="5" class="text-center">Selecciona fechas</td></tr></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ALERTAS -->
+                    <div id="alertas-section" class="page-section">
+                        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                            <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-exclamation-triangle mr-2"></i>Alertas</h1>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-xl-4 col-md-4 mb-4">
+                                <div class="card border-left-danger shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Críticas</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="alertas-criticas">0</div>
+                                            </div>
+                                            <div class="col-auto"><i class="fas fa-exclamation-circle fa-2x text-danger"></i></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-4 col-md-4 mb-4">
+                                <div class="card border-left-warning shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Altas</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="alertas-altas">0</div>
+                                            </div>
+                                            <div class="col-auto"><i class="fas fa-exclamation-triangle fa-2x text-warning"></i></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-4 col-md-4 mb-4">
+                                <div class="card border-left-info shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Medias</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="alertas-medias">0</div>
+                                            </div>
+                                            <div class="col-auto"><i class="fas fa-info-circle fa-2x text-info"></i></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">Alertas Activas</h6></div>
+                            <div class="card-body" id="alertas-lista">
+                                <div class="text-center py-4"><i class="fas fa-spinner fa-spin fa-2x"></i><p class="text-muted mt-2">Analizando...</p></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span><i class="fas fa-leaf text-success"></i> Nube Verde © 2025 - UEES</span>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <a class="scroll-to-top rounded" href="#page-top"><i class="fas fa-angle-up"></i></a>
+
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+    <script src="js/sb-admin-2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="js/nube-verde.js"></script>
+</body>
+</html>
